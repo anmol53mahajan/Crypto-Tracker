@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caezual Crypto</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Caezual Crypto</h1>
+<div class="subtitle"> Explore the future of digital currency 🚀</div>
+<div id="crypto-container"></div>
+
+<script>
+const apiURL = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true';
+const container = document.getElementById('crypto-container');
+
+let coinsData = [];
+let expandedCard = null;
+
+
+
+async function fetchCryptoData() {
+  try {
+    const res = await fetch(apiURL);
+    coinsData = await res.json();
+    renderCoins(coinsData);
+  } catch(err) { 
+    console.error(err);
+  }
+}
+
+function renderCoins(data) {
+  container.innerHTML = '';
+  data.forEach(coin => {
+    const card = document.createElement('div');
+    card.className = 'crypto-card';
+
+    // Header
+    const header = document.createElement('div'); 
+    header.className = 'coin-header';
+    
+    // Create coin name with logo
+    const name = document.createElement('span'); 
+    name.className = 'coin-name';
+    
+    // Add crypto logo
+    const logo = document.createElement('img');
+    logo.className = 'crypto-logo';
+    logo.src = coin.image;
+    logo.alt = `${coin.name} logo`;
+    logo.onerror = function() {
+      // Fallback to a generic crypto icon if logo fails to load
+      this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTIiIGZpbGw9IiMwMGNjZmYiLz4KPHBhdGggZD0iTTEyIDJMMTQgMTJMMTIgMjJMMTAgMTJMMTIgMloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=';
+    };
+    
+    // Add logo and name to the name span
+    name.appendChild(logo);
+    name.appendChild(document.createTextNode(` ${coin.name}`));
+    
+    const symbol = document.createElement('span'); 
+    symbol.className = 'coin-symbol'; 
+    symbol.textContent = coin.symbol.toUpperCase();
+    header.appendChild(name); 
+    header.appendChild(symbol);
+
+    // Price
+    const price = document.createElement('div'); 
+    price.className = 'price'; 
+    price.textContent = `$${coin.current_price.toLocaleString()}`;
+    price.style.color = coin.price_change_percentage_24h >= 0 ? '#00ff7f' : '#ff4500';
+
+    // 24h change
+    const change = document.createElement('div'); 
+    change.className = 'price-change';
+    change.textContent = `${coin.price_change_percentage_24h.toFixed(2)}%`;
+    change.classList.add(coin.price_change_percentage_24h >= 0 ? 'positive' : 'negative');
+
+    // Mood Emoji
+    const mood = document.createElement('div'); 
+    mood.className = 'emoji';
+    mood.textContent = coin.price_change_percentage_24h >= 0 ? '🤑 Bullish' : '😭 Bearish';
+
+    // Canvas chart
+    const canvas = document.createElement('canvas'); 
+    canvas.width = 260; 
+    canvas.height = 80;
+    drawSparkline(canvas, coin.sparkline_in_7d.price, coin.price_change_percentage_24h);
+
+    // Timeline selector (hidden by default)
+    const timelineSelector = document.createElement('div');
+    timelineSelector.className = 'timeline-selector';
+    
+    const timelineTitle = document.createElement('div');
+    timelineTitle.textContent = 'Select Timeline:';
+    timelineTitle.style.marginBottom = '10px';
+    timelineTitle.style.fontWeight = 'bold';
+    
+    const timelineButtons = document.createElement('div');
+    timelineButtons.className = 'timeline-buttons';
+    
+    const timelines = [
+      { label: '1D', days: 1 },
+      { label: '5D', days: 5 },
+      { label: '1M', days: 30 },
+      { label: '6M', days: 180 },
+      { label: '1Y', days: 365 }
+    ];
+    
+    timelines.forEach(timeline => {
+      const btn = document.createElement('button');
+      btn.className = 'timeline-btn';
+      btn.textContent = timeline.label;
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        updateChartTimeline(coin.id, timeline.days, canvas, timelineButtons, btn);
+      };
+      timelineButtons.appendChild(btn);
+    });
+    
+    timelineSelector.appendChild(timelineTitle);
+    timelineSelector.appendChild(timelineButtons);
+
+    // Reactions buttons (gamified)
+    const reactions = document.createElement('div'); 
+    reactions.className = 'reaction-buttons';
+    ['🚀', '🔥', '💀', '😂'].forEach(e => {
+      const btn = document.createElement('button'); 
+      btn.textContent = e;
+      btn.onclick = () => { 
+        alert(`You reacted ${e} to ${coin.name}!`);
+      }
+      reactions.appendChild(btn);
+    });
+
+    card.appendChild(header);
+    card.appendChild(price);
+    card.appendChild(change);
+    card.appendChild(mood);
+    card.appendChild(canvas);
+    card.appendChild(timelineSelector);
+    card.appendChild(reactions);
+
+    container.appendChild(card);
+
+    // Add click event for lightning effect and expansion
+    card.addEventListener('click', function() {
+      // Lightning effect
+      this.classList.add('clicked');
+      setTimeout(() => {
+        this.classList.remove('clicked');
+      }, 500);
+      
+      // Card expansion logic
+      if (expandedCard && expandedCard !== this) {
+        expandedCard.classList.remove('expanded');
+        const prevTimeline = expandedCard.querySelector('.timeline-selector');
+        if (prevTimeline) prevTimeline.style.display = 'none';
+      }
+      
+      if (this.classList.contains('expanded')) {
+        this.classList.remove('expanded');
+        const timelineSelector = this.querySelector('.timeline-selector');
+        if (timelineSelector) timelineSelector.style.display = 'none';
+        expandedCard = null;
+      } else {
+        this.classList.add('expanded');
+        const timelineSelector = this.querySelector('.timeline-selector');
+        if (timelineSelector) timelineSelector.style.display = 'block';
+        expandedCard = this;
+      }
+    });
+  });
+}
+
+function drawSparkline(canvas,data,change){
+  const ctx=canvas.getContext('2d'); 
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const max=Math.max(...data);
+  const min=Math.min(...data);
+  const len=data.length;
+  ctx.strokeStyle=change>=0?'#00ff7f':'#ff4500';
+  ctx.lineWidth=2; 
+  ctx.beginPath();
+  data.forEach((p,i)=>{ const x=(i/(len-1))*canvas.width;
+ const y=canvas.height-((p-min)/(max-min))*canvas.height;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }); ctx.stroke();
+}
+
+async function updateChartTimeline(coinId, days, expandedChart, timelineButtons, clickedBtn) {
+  try {
+    // Update active button
+    timelineButtons.querySelectorAll('.timeline-btn').forEach(btn => btn.classList.remove('active'));
+    clickedBtn.classList.add('active');
+    
+    // Show loading state
+    const ctx = expandedChart.getContext('2d');
+    ctx.clearRect(0, 0, expandedChart.width, expandedChart.height);
+    ctx.fillStyle = '#8a2be2';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Loading chart...', expandedChart.width / 2, expandedChart.height / 2);
+    
+    // Add delay to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Fetch historical data from CoinGecko API with retry mechanism
+    const daysParam = days.toString();
+    
+    const apiUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${daysParam}`;
+    
+    console.log(`Fetching data for ${coinId} with days=${daysParam}`);
+    
+    // Try to fetch data with retry mechanism
+    let response;
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        response = await fetch(apiUrl);
+        if (response.ok) break;
+        
+        if (response.status === 429 && retryCount < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+          retryCount++;
+          continue;
+        }
+        break;
+      } catch (fetchError) {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        throw fetchError;
+      }
+    }
+    
+    if (!response.ok) {
+      if (response.status === 429) throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+      if (response.status === 404) throw new Error('Data not available for this timeline.');
+      if (response.status === 403) throw new Error('Access denied. API limit reached.');
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (data.prices && data.prices.length > 0) {
+      drawTimelineChart(expandedChart, data.prices, days);
+    } else {
+      const ctx = expandedChart.getContext('2d');
+      ctx.clearRect(0, 0, expandedChart.width, expandedChart.height);
+      ctx.fillStyle = '#ff4500';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('No data available', expandedChart.width / 2, expandedChart.height / 2);
+    }
+    
+  } catch (error) {
+    console.error('Error in updateChartTimeline:', error);
+    const ctx = expandedChart.getContext('2d');
+    ctx.clearRect(0, 0, expandedChart.width, expandedChart.height);
+    ctx.fillStyle = '#ff4500';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(error.message, expandedChart.width / 2, expandedChart.height / 2);
+  }
+}
+
+function drawTimelineChart(canvas, priceData, days) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  if (!priceData || priceData.length === 0) return;
+  
+  // Extract prices from the [timestamp, price] format
+  const prices = priceData.map(point => point[1]);
+  const max = Math.max(...prices);
+  const min = Math.min(...prices);
+  const len = prices.length;
+  
+  // Set chart style
+  ctx.strokeStyle = '#8a2be2';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  
+  // Draw the line
+  prices.forEach((price, i) => {
+    const x = (i / (len - 1)) * canvas.width;
+    const y = canvas.height - ((price - min) / (max - min)) * canvas.height;
+    
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  
+  ctx.stroke();
+  
+  // Add gradient fill
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, 'rgba(138, 43, 226, 0.3)');
+  gradient.addColorStop(1, 'rgba(138, 43, 226, 0.1)');
+  
+  // Fill the area under the line
+  ctx.lineTo(canvas.width, canvas.height);
+  ctx.lineTo(0, canvas.height);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // Add price labels
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Max: $${max.toFixed(2)}`, 5, 15);
+  ctx.fillText(`Min: $${min.toFixed(2)}`, 5, 30);
+  
+  // Add timeline label
+  ctx.textAlign = 'right';
+  const timelineLabel = `${days}D`;
+  ctx.fillText(timelineLabel, canvas.width - 5, 15);
+}
+
+fetchCryptoData();
+setInterval(fetchCryptoData,30000);
+</script>
+</body>
+</html>
+

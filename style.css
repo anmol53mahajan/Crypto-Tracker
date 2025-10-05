@@ -1,0 +1,228 @@
+ h1 {
+    margin-top: 20px;
+    color: #8a2be2;
+    text-align: center;
+    font-size: 4rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    background: linear-gradient(45deg, #8a2be2, #00ffff, #ff6b6b, #8a2be2);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 3s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
+    position: relative;
+    margin-bottom: 40px;
+  }
+
+  h1::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #8a2be2, #00ffff, transparent);
+    border-radius: 2px;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  h1::after {
+    content: '🚀';
+    position: absolute;
+    top: -30px;
+    right: 20%;
+    font-size: 2rem;
+    animation: rocket 2s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes glow {
+    0% { box-shadow: 0 0 10px rgba(138, 43, 226, 0.5); }
+    100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+  }
+
+  @keyframes rocket {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  /* Add a subtitle */
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 1.2rem;
+    margin-top: -30px;
+    margin-bottom: 30px;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  /* Enhanced body background */
+  body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  #crypto-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    gap: 20px;
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px 0;
+  }
+
+  .crypto-card {
+    background-color: #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+
+  .crypto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(138,43,226,0.5);
+  }
+
+  .crypto-card.clicked {
+    box-shadow: 0 0 20px #8a2be2;
+    animation: lightning 0.5s ease-out;
+  }
+
+  .crypto-card.expanded {
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 8px 25px rgba(138,43,226,0.7);
+  }
+
+  .timeline-selector {
+    display: none;
+    margin-top: 15px;
+    padding: 10px;
+    background: #222;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .crypto-card.expanded .timeline-selector {
+    display: block;
+  }
+
+  .timeline-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .timeline-btn {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+
+  .timeline-btn:hover {
+    background: #8a2be2;
+    border-color: #8a2be2;
+    transform: scale(1.05);
+  }
+
+  .timeline-btn.active {
+    background: #8a2be2;
+    border-color: #8a2be2;
+    box-shadow: 0 0 10px rgba(138,43,226,0.5);
+  }
+
+
+
+  @keyframes lightning {
+    0% { box-shadow: 0 0 20px #8a2be2; }
+    50% { box-shadow: 0 0 30px #8a2be2, 0 0 40px #8a2be2; }
+    100% { box-shadow: 0 4px 15px rgba(138,43,226,0.5); }
+  }
+
+  .coin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .coin-name { 
+    font-weight: bold; 
+    font-size: 1.8rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+  }
+  
+  .coin-symbol { 
+    color: #00ffff; 
+    font-weight: bold; 
+    font-size: 1.1rem; 
+  }
+  
+  .crypto-logo {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .price { margin: 10px 0; font-size: 1.5rem; transition: color 0.3s; }
+  .price-change { font-weight: bold; }
+
+  .price-change.positive { color: #00ff7f; }
+  .price-change.negative { color: #ff4500; }
+
+  canvas { margin-top: 10px; border-radius: 8px; background: #111; }
+
+  .emoji { font-size: 1.1rem; margin-top: 5px; }
+  
+
+
+  .reaction-buttons { display:flex; gap:5px; margin-top:5px; }
+  .reaction-buttons button {
+    background: #222; color:#fff; border:none; border-radius:6px; padding:5px 8px; cursor:pointer; transition:0.2s;
+  }
+  .reaction-buttons button:hover { transform:scale(1.2); }
+
+  @media(max-width:600px){ .crypto-card{padding:15px;} .price{font-size:1.2rem;} }
